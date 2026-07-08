@@ -14,6 +14,7 @@ summary and compact list of added or removed words.
 - optional Playwright rendering and full-page screenshots
 - SQL persistence for targets and immutable snapshots
 - deterministic diff scoring and incident severity
+- optional autonomous scheduler for interval-based checks
 - MCP tools for use by agentic clients
 - responsive frontend with no build step
 - pytest, Ruff, Docker and GitHub Actions
@@ -28,6 +29,7 @@ flowchart LR
     MCP --> SERVICE
     SERVICE --> HTTP[HTTP probe]
     SERVICE --> BROWSER[Playwright probe]
+    SCHEDULER[Background scheduler] --> SERVICE
     HTTP --> DIFF[Diff engine]
     BROWSER --> DIFF
     DIFF --> DB[(SQLite)]
@@ -71,6 +73,20 @@ LUMENWATCH_BROWSER_ENABLED=true
 
 Targets with `render_js=true` will use Chromium. If browser mode is disabled,
 they safely fall back to the HTTP probe.
+
+## Autonomous monitoring
+
+The scheduler is disabled by default so cloning the repository never starts
+unexpected network traffic. Enable it in `.env` when targets should run on
+their configured intervals:
+
+```dotenv
+LUMENWATCH_SCHEDULER_ENABLED=true
+LUMENWATCH_SCHEDULER_TICK_SECONDS=60
+```
+
+Its runtime state is exposed at `GET /api/scheduler`. Failed captures are
+isolated per target, so one unavailable page does not stop the monitoring loop.
 
 ## MCP server
 
@@ -144,6 +160,7 @@ app/
   diff_engine.py   similarity, severity, additions and removals
   probes.py        HTTP and Playwright capture strategies
   service.py       monitoring orchestration
+  scheduler.py     autonomous interval runner
   main.py          REST API and dashboard
   mcp_server.py    MCP tool surface
   static/          frontend
@@ -153,4 +170,3 @@ tests/             unit and API tests
 ## License
 
 MIT
-

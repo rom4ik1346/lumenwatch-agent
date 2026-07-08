@@ -7,10 +7,18 @@ from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
-from app.config import PROJECT_ROOT, browser_enabled, capture_directory, database_path
+from app.config import (
+    PROJECT_ROOT,
+    browser_enabled,
+    capture_directory,
+    database_path,
+    scheduler_enabled,
+    scheduler_tick_seconds,
+)
 from app.database import Database
 from app.demo_data import seed_demo_data
 from app.probes import ProbeError
+from app.scheduler import MonitorScheduler
 from app.schemas import TargetCreate
 from app.service import MonitorService, ProbeFactory, TargetNotFoundError, default_probe_factory
 
@@ -29,12 +37,17 @@ def create_app(
         browser_enabled=browser_enabled(),
         probe_factory=probe_factory,
     )
+    scheduler = MonitorScheduler(database, service, tick_seconds=scheduler_tick_seconds())
+    scheduler_is_enabled = scheduler_enabled()
 
     @asynccontextmanager
     async def lifespan(_: FastAPI):
         database.initialize()
         seed_demo_data(database)
+        if scheduler_is_enabled:
+            await scheduler.start()
         yield
+        await scheduler.stop()
 
     application = FastAPI(
         title="LumenWatch Agent",
@@ -44,6 +57,7 @@ def create_app(
     )
     application.state.database = database
     application.state.monitor_service = service
+    application.state.scheduler = scheduler
     static_directory = PROJECT_ROOT / "app" / "static"
     application.mount("/static", StaticFiles(directory=static_directory), name="static")
     application.mount(
@@ -59,6 +73,14 @@ def create_app(
     @application.get("/api/health", tags=["system"])
     async def health() -> dict[str, str]:
         return {"status": "ok", "service": "lumenwatch-agent"}
+
+    @application.get("/api/scheduler", tags=["system"])
+    async def scheduler_status() -> dict[str, bool | int]:
+        return {
+            "enabled": scheduler_is_enabled,
+            "running": scheduler.running,
+            "tick_seconds": scheduler.tick_seconds,
+        }
 
     @application.get("/api/overview", tags=["monitoring"])
     async def overview() -> dict:
