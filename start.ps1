@@ -8,5 +8,11 @@ if (-not (Test-Path $python)) {
     exit 1
 }
 
-& $python -m uvicorn app.main:app --host 127.0.0.1 --port 8020 --reload
+$arguments = @("-m", "uvicorn", "app.main:app", "--host", "127.0.0.1", "--port", "8020", "--reload")
+$envFile = Join-Path $PSScriptRoot ".env"
+if (Test-Path $envFile) {
+    $arguments += @("--env-file", $envFile)
+}
+
+& $python @arguments
 

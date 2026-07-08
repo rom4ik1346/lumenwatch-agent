@@ -4,8 +4,10 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 
-from app.config import browser_enabled, capture_directory, database_path
+from app.config import PROJECT_ROOT, browser_enabled, capture_directory, database_path
 from app.database import Database
 from app.demo_data import seed_demo_data
 from app.probes import ProbeError
@@ -19,9 +21,11 @@ def create_app(
     probe_factory: ProbeFactory = default_probe_factory,
 ) -> FastAPI:
     database = Database(database_file or database_path())
+    resolved_capture_path = capture_path or capture_directory()
+    resolved_capture_path.mkdir(parents=True, exist_ok=True)
     service = MonitorService(
         database=database,
-        capture_directory=capture_path or capture_directory(),
+        capture_directory=resolved_capture_path,
         browser_enabled=browser_enabled(),
         probe_factory=probe_factory,
     )
@@ -40,6 +44,17 @@ def create_app(
     )
     application.state.database = database
     application.state.monitor_service = service
+    static_directory = PROJECT_ROOT / "app" / "static"
+    application.mount("/static", StaticFiles(directory=static_directory), name="static")
+    application.mount(
+        "/captures",
+        StaticFiles(directory=resolved_capture_path),
+        name="captures",
+    )
+
+    @application.get("/", include_in_schema=False)
+    async def dashboard() -> FileResponse:
+        return FileResponse(static_directory / "index.html")
 
     @application.get("/api/health", tags=["system"])
     async def health() -> dict[str, str]:

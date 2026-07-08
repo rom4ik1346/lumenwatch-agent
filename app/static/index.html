@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="LumenWatch — website change intelligence with browser automation and MCP."
+    />
+    <title>LumenWatch — change intelligence</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="/">
+        <span class="brand-orbit"><i></i></span>
+        <span>
+          <strong>LumenWatch</strong>
+          <small>Change intelligence</small>
+        </span>
+      </a>
+      <nav>
+        <a href="#targets">Targets</a>
+        <a href="#activity">Activity</a>
+        <a href="/docs">API ↗</a>
+      </nav>
+      <div class="agent-status"><span></span> MCP agent online</div>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="hero-copy">
+          <p class="overline">WEB OPERATIONS / 2026</p>
+          <h1>Know what changed <em>before</em> users tell you.</h1>
+          <p class="hero-description">
+            LumenWatch captures critical pages, understands the difference and keeps an
+            evidence trail your team — or an AI agent — can act on.
+          </p>
+        </div>
+        <div class="hero-visual" aria-hidden="true">
+          <div class="radar">
+            <span class="radar-line one"></span>
+            <span class="radar-line two"></span>
+            <span class="radar-line three"></span>
+            <i class="blip first"></i>
+            <i class="blip second"></i>
+          </div>
+          <div class="radar-label">
+            <span>LIVE SCAN</span>
+            <strong id="hero-target-count">00</strong>
+            <small>monitored surfaces</small>
+          </div>
+        </div>
+      </section>
+
+      <section class="create-strip">
+        <div>
+          <span class="number">01</span>
+          <div>
+            <p class="overline">ADD A WATCH</p>
+            <h2>What should LumenWatch protect?</h2>
+          </div>
+        </div>
+        <form id="target-form">
+          <label>
+            <span>Name</span>
+            <input name="name" placeholder="Pricing page" required />
+          </label>
+          <label class="url-field">
+            <span>URL</span>
+            <input name="url" type="url" placeholder="https://example.com/pricing" required />
+          </label>
+          <label>
+            <span>Every</span>
+            <select name="interval_minutes">
+              <option value="15">15 min</option>
+              <option value="30" selected>30 min</option>
+              <option value="60">1 hour</option>
+              <option value="360">6 hours</option>
+            </select>
+          </label>
+          <label class="checkbox-label">
+            <input name="render_js" type="checkbox" />
+            <span>Render JS</span>
+          </label>
+          <button type="submit">Start watching</button>
+        </form>
+        <p id="message" class="message" role="status" aria-live="polite"></p>
+      </section>
+
+      <section class="metrics" aria-label="Monitoring overview">
+        <article>
+          <span>Active targets</span>
+          <strong id="active-targets">—</strong>
+          <small>currently monitored</small>
+        </article>
+        <article>
+          <span>Total checks</span>
+          <strong id="total-checks">—</strong>
+          <small>immutable snapshots</small>
+        </article>
+        <article class="accent">
+          <span>Changes detected</span>
+          <strong id="change-count">—</strong>
+          <small>worth reviewing</small>
+        </article>
+        <article>
+          <span>Average response</span>
+          <strong id="average-response">—</strong>
+          <small>across all captures</small>
+        </article>
+      </section>
+
+      <section id="targets" class="section-block">
+        <div class="section-heading">
+          <div>
+            <span class="number">02</span>
+            <div>
+              <p class="overline">WATCH SURFACES</p>
+              <h2>Targets and current state</h2>
+            </div>
+          </div>
+          <span id="target-summary" class="section-meta"></span>
+        </div>
+        <div id="target-grid" class="target-grid"></div>
+      </section>
+
+      <section id="activity" class="activity-grid">
+        <article class="timeline-panel">
+          <div class="section-heading compact">
+            <div>
+              <span class="number">03</span>
+              <div>
+                <p class="overline">EVENT STREAM</p>
+                <h2>Recent changes</h2>
+              </div>
+            </div>
+          </div>
+          <div id="timeline" class="timeline"></div>
+        </article>
+
+        <aside class="diff-panel">
+          <div class="diff-top">
+            <div>
+              <p class="overline">CHANGE DETAIL</p>
+              <h2 id="detail-title">Select an event</h2>
+            </div>
+            <span id="detail-severity" class="severity none">—</span>
+          </div>
+          <p id="detail-summary" class="detail-summary">
+            Choose a change from the activity stream to inspect its evidence.
+          </p>
+          <div class="detail-stats">
+            <div>
+              <span>Similarity</span>
+              <strong id="detail-similarity">—</strong>
+            </div>
+            <div>
+              <span>Response</span>
+              <strong id="detail-response">—</strong>
+            </div>
+            <div>
+              <span>Engine</span>
+              <strong id="detail-engine">—</strong>
+            </div>
+          </div>
+          <div class="word-diff">
+            <div>
+              <h3>Added</h3>
+              <div id="added-words" class="word-list added"></div>
+            </div>
+            <div>
+              <h3>Removed</h3>
+              <div id="removed-words" class="word-list removed"></div>
+            </div>
+          </div>
+          <pre id="content-preview" class="content-preview">No capture selected.</pre>
+        </aside>
+      </section>
+    </main>
+
+    <footer>
+      <div>
+        <strong>LumenWatch Agent</strong>
+        <span>FastAPI · SQLite · Playwright · MCP</span>
+      </div>
+      <span>Evidence over guesswork.</span>
+    </footer>
+
+    <script src="/static/app.js" defer></script>
+  </body>
+</html>
+
